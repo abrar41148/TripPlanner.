@@ -58,16 +58,6 @@
 
             </LinearLayout>
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNewPlan"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="New Plan"
-                android:textColor="@color/accent_teal"
-                android:textSize="14sp"
-                app:backgroundTint="@android:color/transparent" />
-
         </LinearLayout>
 
     </LinearLayout>

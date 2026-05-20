@@ -13,8 +13,8 @@ import com.google.android.material.button.MaterialButton;
 public class DashboardActivity extends AppCompatActivity {
 
     TextView tvWelcome, tvLastDestination, tvLastDate, tvDaysRemaining, tvBudgetInfo;
-    MaterialButton btnNewTrip, btnLogout;
-    CardView cardPlanTrip, cardMyProfile, cardBudget, cardTipOfDay, cardTripHistory, cardCurrentTrip;
+    MaterialButton btnNewTrip, btnLogout, btnBudget, btnPackList;
+    CardView cardMyProfile, cardTipOfDay, cardTripHistory, cardCurrentTrip;
 
     SharedPreferences sharedPreferences;
 
@@ -32,12 +32,12 @@ public class DashboardActivity extends AppCompatActivity {
         tvBudgetInfo = findViewById(R.id.tvBudgetInfo);
         btnNewTrip = findViewById(R.id.btnNewTrip);
         btnLogout = findViewById(R.id.btnLogout);
-        cardPlanTrip = findViewById(R.id.cardPlanTrip);
         cardMyProfile = findViewById(R.id.cardMyProfile);
-        cardBudget = findViewById(R.id.cardBudget);
         cardTipOfDay = findViewById(R.id.cardTipOfDay);
         cardTripHistory = findViewById(R.id.cardTripHistory);
         cardCurrentTrip = findViewById(R.id.cardCurrentTrip);
+        btnBudget = findViewById(R.id.btnBudget);
+        btnPackList = findViewById(R.id.btnPackList);
 
         String username = sharedPreferences.getString(LoginActivity.KEY_USERNAME, "Traveler");
         tvWelcome.setText("Hello, " + username + "! ✈️");
@@ -45,14 +45,14 @@ public class DashboardActivity extends AppCompatActivity {
         loadLastTrip();
 
         btnNewTrip.setOnClickListener(v -> handleNewTrip());
-        cardPlanTrip.setOnClickListener(v -> handleNewTrip());
         cardCurrentTrip.setOnClickListener(v -> {
             if (sharedPreferences.getBoolean("has_active_plan", false)) {
                 startActivity(new Intent(this, MainActivity.class));
             }
         });
         cardMyProfile.setOnClickListener(v -> startActivity(new Intent(this, ProfileActivity.class)));
-        cardBudget.setOnClickListener(v -> startActivity(new Intent(this, BudgetActivity.class)));
+        btnBudget.setOnClickListener(v -> startActivity(new Intent(this, BudgetActivity.class)));
+        btnPackList.setOnClickListener(v -> startActivity(new Intent(this, PackListActivity.class)));
         cardTipOfDay.setOnClickListener(v -> startActivity(new Intent(this, TravelTipsActivity.class)));
         cardTripHistory.setOnClickListener(v -> startActivity(new Intent(this, TripHistoryActivity.class)));
         btnLogout.setOnClickListener(v -> logout());

@@ -61,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
             String dest = prefs.getString("last_destination", "");
             long start = prefs.getLong("last_start_date", 0);
             long end = prefs.getLong("last_end_date", 0);
+            int tripId = prefs.getInt("last_trip_id", -1);
             java.util.Set<String> activitiesSet = prefs.getStringSet("last_activities", new java.util.HashSet<>());
             ArrayList<String> activities = new ArrayList<>(activitiesSet);
 
@@ -68,6 +69,7 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("destination", dest);
             intent.putExtra("startDate", start);
             intent.putExtra("endDate", end);
+            intent.putExtra("tripId", tripId);
             intent.putStringArrayListExtra("activities", activities);
             startActivity(intent);
             finish();
@@ -305,6 +307,10 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<String> activities = getSelectedActivities();
 
+        // Save to SQLite history
+        String activitiesStr = String.join(", ", activities);
+        long tripId = db.insertTrip(destination, startCalendar.getTimeInMillis(), endCalendar.getTimeInMillis(), activitiesStr);
+
         // Save to SharedPreferences (last trip)
         java.util.Set<String> activitiesSet = new java.util.HashSet<>(activities);
         prefs.edit()
@@ -314,16 +320,14 @@ public class MainActivity extends AppCompatActivity {
                 .putLong("last_start_date", startCalendar.getTimeInMillis())
                 .putLong("last_end_date", endCalendar.getTimeInMillis())
                 .putStringSet("last_activities", activitiesSet)
+                .putInt("last_trip_id", (int) tripId)
                 .apply();
-
-        // Save to SQLite history
-        String activitiesStr = String.join(", ", activities);
-        db.insertTrip(destination, startCalendar.getTimeInMillis(), endCalendar.getTimeInMillis(), activitiesStr);
 
         Intent intent = new Intent(this, TripResultActivity.class);
         intent.putExtra("destination", destination);
         intent.putExtra("startDate", startCalendar.getTimeInMillis());
         intent.putExtra("endDate", endCalendar.getTimeInMillis());
+        intent.putExtra("tripId", (int) tripId);
         intent.putStringArrayListExtra("activities", activities);
         startActivity(intent);
     }

@@ -26,6 +26,7 @@
         <activity android:name=".BudgetActivity" android:exported="false" />
         <activity android:name=".TravelTipsActivity" android:exported="false" />
         <activity android:name=".TripHistoryActivity" android:exported="false" />
+        <activity android:name=".PackListActivity" android:exported="false" />
 
     </application>
 

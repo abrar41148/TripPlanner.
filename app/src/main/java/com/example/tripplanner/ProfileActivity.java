@@ -12,7 +12,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 public class ProfileActivity extends AppCompatActivity {
 
-    TextInputEditText etName, etEmail, etPhone, etBio, etApiKey;
+    TextInputEditText etName, etEmail, etPhone, etBio, etApiKey, etGeminiApiKey;
     MaterialButton btnSave, btnBack;
     SharedPreferences sharedPreferences;
 
@@ -28,6 +28,7 @@ public class ProfileActivity extends AppCompatActivity {
         etPhone = findViewById(R.id.etPhone);
         etBio = findViewById(R.id.etBio);
         etApiKey = findViewById(R.id.etApiKey);
+        etGeminiApiKey = findViewById(R.id.etGeminiApiKey);
         btnSave = findViewById(R.id.btnSave);
         btnBack = findViewById(R.id.btnBack);
 
@@ -37,6 +38,7 @@ public class ProfileActivity extends AppCompatActivity {
         etPhone.setText(sharedPreferences.getString("profile_phone", ""));
         etBio.setText(sharedPreferences.getString("profile_bio", ""));
         etApiKey.setText(sharedPreferences.getString("google_api_key", ""));
+        etGeminiApiKey.setText(sharedPreferences.getString("gemini_api_key", ""));
 
         btnSave.setOnClickListener(v -> saveProfile());
         btnBack.setOnClickListener(v -> finish());
@@ -47,6 +49,7 @@ public class ProfileActivity extends AppCompatActivity {
         String phone = etPhone.getText() != null ? etPhone.getText().toString().trim() : "";
         String bio = etBio.getText() != null ? etBio.getText().toString().trim() : "";
         String apiKey = etApiKey.getText() != null ? etApiKey.getText().toString().trim() : "";
+        String geminiApiKey = etGeminiApiKey.getText() != null ? etGeminiApiKey.getText().toString().trim() : "";
 
         if (TextUtils.isEmpty(name)) {
             etName.setError("Name cannot be empty");
@@ -58,6 +61,7 @@ public class ProfileActivity extends AppCompatActivity {
         editor.putString("profile_phone", phone);
         editor.putString("profile_bio", bio);
         editor.putString("google_api_key", apiKey);
+        editor.putString("gemini_api_key", geminiApiKey);
         editor.apply();
 
         Toast.makeText(this, "Profile saved successfully!", Toast.LENGTH_SHORT).show();

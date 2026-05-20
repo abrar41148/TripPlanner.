@@ -1,5 +1,6 @@
 package com.example.tripplanner;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -46,6 +47,8 @@ public class WeatherFragment extends Fragment {
     OkHttpClient httpClient = new OkHttpClient();
     Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    private static final long CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 hours
+
     static class DayWeather {
         String date;
         float tempMin;
@@ -76,16 +79,20 @@ public class WeatherFragment extends Fragment {
             endDate = getArguments().getLong("endDate");
         }
 
-        // Set up retry button
+        // Set up retry button (bypasses cache)
         btnRetry.setOnClickListener(v -> {
             btnRetry.setVisibility(View.GONE);
             tvLoading.setVisibility(View.VISIBLE);
             weatherContainer.setVisibility(View.GONE);
             cardWeatherTip.setVisibility(View.GONE);
+            clearWeatherCache();
             fetchLocationThenWeather();
         });
 
-        fetchLocationThenWeather();
+        // Try cache first
+        if (!loadFromCache()) {
+            fetchLocationThenWeather();
+        }
         return view;
     }
 
@@ -176,9 +183,59 @@ public class WeatherFragment extends Fragment {
                 }
 
                 String body = response.body().string();
+                // Cache the raw JSON
+                saveToCache(body);
                 mainHandler.post(() -> parseAndShowOpenMeteo(body));
             }
         });
+    }
+
+    // ─── Cache ────────────────────────────────────────────────────────────────
+
+    private String getCacheKey() {
+        return "weather_cache_" + destination + "_" + startDate + "_" + endDate;
+    }
+
+    private String getCacheTimeKey() {
+        return getCacheKey() + "_time";
+    }
+
+    private SharedPreferences getCachePrefs() {
+        return getContext() != null
+                ? getContext().getSharedPreferences("weather_cache", android.content.Context.MODE_PRIVATE)
+                : null;
+    }
+
+    private boolean loadFromCache() {
+        SharedPreferences prefs = getCachePrefs();
+        if (prefs == null) return false;
+
+        long cachedTime = prefs.getLong(getCacheTimeKey(), 0);
+        if (System.currentTimeMillis() - cachedTime > CACHE_TTL_MS) return false;
+
+        String cachedJson = prefs.getString(getCacheKey(), null);
+        if (cachedJson == null || cachedJson.isEmpty()) return false;
+
+        parseAndShowOpenMeteo(cachedJson);
+        return true;
+    }
+
+    private void saveToCache(String json) {
+        SharedPreferences prefs = getCachePrefs();
+        if (prefs == null) return;
+        prefs.edit()
+                .putString(getCacheKey(), json)
+                .putLong(getCacheTimeKey(), System.currentTimeMillis())
+                .apply();
+    }
+
+    private void clearWeatherCache() {
+        SharedPreferences prefs = getCachePrefs();
+        if (prefs == null) return;
+        prefs.edit()
+                .remove(getCacheKey())
+                .remove(getCacheTimeKey())
+                .apply();
     }
 
     void parseAndShowOpenMeteo(String json) {

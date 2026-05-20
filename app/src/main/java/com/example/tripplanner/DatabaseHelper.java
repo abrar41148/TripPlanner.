@@ -12,7 +12,7 @@ import java.util.List;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "TripPlannerDB";
-    private static final int DB_VERSION = 1;
+    private static final int DB_VERSION = 2;
 
     // Trip history table
     public static final String TABLE_TRIPS = "trips";
@@ -22,6 +22,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COL_END_DATE = "end_date";
     public static final String COL_ACTIVITIES = "activities";
     public static final String COL_CREATED_AT = "created_at";
+
+    // Itinerary table
+    public static final String TABLE_ITINERARIES = "itineraries";
+    public static final String COL_ITIN_ID = "id";
+    public static final String COL_ITIN_TRIP_ID = "trip_id";
+    public static final String COL_ITIN_NAME = "name";
+    public static final String COL_ITIN_DESCRIPTION = "description";
+    public static final String COL_ITIN_ATTRACTIONS = "attractions"; // JSON array
+    public static final String COL_ITIN_CREATED_AT = "created_at";
 
     public DatabaseHelper(Context context) {
         super(context, DB_NAME, null, DB_VERSION);
@@ -37,12 +46,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 COL_ACTIVITIES + " TEXT, " +
                 COL_CREATED_AT + " INTEGER DEFAULT (strftime('%s','now'))" +
                 ")");
+        
+        db.execSQL("CREATE TABLE " + TABLE_ITINERARIES + " (" +
+                COL_ITIN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                COL_ITIN_TRIP_ID + " INTEGER, " +
+                COL_ITIN_NAME + " TEXT NOT NULL, " +
+                COL_ITIN_DESCRIPTION + " TEXT, " +
+                COL_ITIN_ATTRACTIONS + " TEXT, " +
+                COL_ITIN_CREATED_AT + " INTEGER DEFAULT (strftime('%s','now')), " +
+                "FOREIGN KEY(" + COL_ITIN_TRIP_ID + ") REFERENCES " + TABLE_TRIPS + "(" + COL_ID + ")" +
+                ")");
     }
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_TRIPS);
-        onCreate(db);
+        if (oldVersion < 2) {
+            db.execSQL("CREATE TABLE " + TABLE_ITINERARIES + " (" +
+                    COL_ITIN_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COL_ITIN_TRIP_ID + " INTEGER, " +
+                    COL_ITIN_NAME + " TEXT NOT NULL, " +
+                    COL_ITIN_DESCRIPTION + " TEXT, " +
+                    COL_ITIN_ATTRACTIONS + " TEXT, " +
+                    COL_ITIN_CREATED_AT + " INTEGER DEFAULT (strftime('%s','now')), " +
+                    "FOREIGN KEY(" + COL_ITIN_TRIP_ID + ") REFERENCES " + TABLE_TRIPS + "(" + COL_ID + ")" +
+                    ")");
+        }
     }
 
     // Insert a trip
@@ -86,11 +114,61 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
     }
 
+    // Insert an itinerary
+    public long insertItinerary(int tripId, String name, String description, String attractions) {
+        SQLiteDatabase db = getWritableDatabase();
+        ContentValues cv = new ContentValues();
+        cv.put(COL_ITIN_TRIP_ID, tripId);
+        cv.put(COL_ITIN_NAME, name);
+        cv.put(COL_ITIN_DESCRIPTION, description);
+        cv.put(COL_ITIN_ATTRACTIONS, attractions);
+        long id = db.insert(TABLE_ITINERARIES, null, cv);
+        db.close();
+        return id;
+    }
+
+    // Get itineraries for a trip
+    public List<ItineraryRecord> getItinerariesByTripId(int tripId) {
+        List<ItineraryRecord> itineraries = new ArrayList<>();
+        SQLiteDatabase db = getReadableDatabase();
+        Cursor c = db.query(TABLE_ITINERARIES, null, COL_ITIN_TRIP_ID + "=?", 
+                new String[]{String.valueOf(tripId)}, null, null, COL_ITIN_CREATED_AT + " DESC");
+        if (c.moveToFirst()) {
+            do {
+                ItineraryRecord it = new ItineraryRecord();
+                it.id = c.getInt(c.getColumnIndexOrThrow(COL_ITIN_ID));
+                it.tripId = c.getInt(c.getColumnIndexOrThrow(COL_ITIN_TRIP_ID));
+                it.name = c.getString(c.getColumnIndexOrThrow(COL_ITIN_NAME));
+                it.description = c.getString(c.getColumnIndexOrThrow(COL_ITIN_DESCRIPTION));
+                it.attractions = c.getString(c.getColumnIndexOrThrow(COL_ITIN_ATTRACTIONS));
+                itineraries.add(it);
+            } while (c.moveToNext());
+        }
+        c.close();
+        db.close();
+        return itineraries;
+    }
+
+    // Delete an itinerary
+    public void deleteItinerary(int id) {
+        SQLiteDatabase db = getWritableDatabase();
+        db.delete(TABLE_ITINERARIES, COL_ITIN_ID + "=?", new String[]{String.valueOf(id)});
+        db.close();
+    }
+
     public static class TripRecord {
         public int id;
         public String destination;
         public long startDate;
         public long endDate;
         public String activities;
+    }
+
+    public static class ItineraryRecord {
+        public int id;
+        public int tripId;
+        public String name;
+        public String description;
+        public String attractions; // JSON array string
     }
 }

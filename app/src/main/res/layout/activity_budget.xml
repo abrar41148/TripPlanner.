@@ -114,7 +114,7 @@
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
-        <!-- Budget fields -->
+        <!-- Total Budget -->
         <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
             android:text="Total Budget (₹)" android:textColor="@color/text_secondary"
             android:textSize="12sp" android:layout_marginBottom="6dp" />
@@ -123,106 +123,218 @@
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
             app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
-            android:layout_marginBottom="14dp">
+            android:layout_marginBottom="24dp">
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/etTotalBudget" android:layout_width="match_parent"
                 android:layout_height="wrap_content" android:inputType="numberDecimal"
                 android:textColor="@color/text_primary" android:hint="e.g. 50000" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Accommodation (₹)" android:textColor="@color/text_secondary"
-            android:textSize="12sp" android:layout_marginBottom="6dp" />
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
-            android:layout_marginBottom="14dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etAccommodation" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:inputType="numberDecimal"
-                android:textColor="@color/text_primary" android:hint="e.g. 15000" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Food &amp; Dining (₹)" android:textColor="@color/text_secondary"
-            android:textSize="12sp" android:layout_marginBottom="6dp" />
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
-            android:layout_marginBottom="14dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etFood" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:inputType="numberDecimal"
-                android:textColor="@color/text_primary" android:hint="e.g. 8000" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Transport (₹)" android:textColor="@color/text_secondary"
-            android:textSize="12sp" android:layout_marginBottom="6dp" />
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
-            android:layout_marginBottom="14dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etTransport" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:inputType="numberDecimal"
-                android:textColor="@color/text_primary" android:hint="e.g. 10000" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
-            android:text="Activities &amp; Sightseeing (₹)" android:textColor="@color/text_secondary"
-            android:textSize="12sp" android:layout_marginBottom="6dp" />
-        <com.google.android.material.textfield.TextInputLayout
-            android:layout_width="match_parent" android:layout_height="wrap_content"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-            app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
-            app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp"
-            android:layout_marginBottom="24dp">
-            <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/etActivities" android:layout_width="match_parent"
-                android:layout_height="wrap_content" android:inputType="numberDecimal"
-                android:textColor="@color/text_primary" android:hint="e.g. 5000" />
-        </com.google.android.material.textfield.TextInputLayout>
-
-        <!-- Buttons -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnCalculate"
-                android:layout_width="0dp"
-                android:layout_height="52dp"
+        <!-- ==================== ACCOMMODATION ==================== -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginEnd="8dp"
-                android:text="Calculate"
-                android:textSize="14sp"
-                android:textColor="@color/text_primary"
-                app:backgroundTint="@color/surface_dark"
-                app:strokeColor="@color/accent_blue"
-                app:strokeWidth="1dp"
-                app:cornerRadius="14dp" />
-
+                android:text="🏨 Accommodation" android:textColor="@color/text_primary"
+                android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvAccommodationTotal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="₹0" android:textColor="@color/accent_teal"
+                android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etAccommodation" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal"
+                    android:textColor="@color/text_primary" android:hint="Add expense" />
+            </com.google.android.material.textfield.TextInputLayout>
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnSave"
-                android:layout_width="0dp"
-                android:layout_height="52dp"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:text="Save Budget"
-                android:textSize="14sp"
-                android:textStyle="bold"
+                android:id="@+id/btnAddAccommodation"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:text="+" android:textSize="20sp"
                 android:textColor="@color/text_primary"
                 app:backgroundTint="@color/accent_blue"
-                app:cornerRadius="14dp" />
+                app:cornerRadius="12dp"
+                android:insetTop="0dp" android:insetBottom="0dp"
+                android:layout_marginEnd="8dp" />
+            <HorizontalScrollView
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:scrollbars="none"
+                android:fadingEdge="horizontal" android:fadingEdgeLength="16dp">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupAccommodation"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    app:singleLine="true" app:chipSpacingHorizontal="6dp" />
+            </HorizontalScrollView>
         </LinearLayout>
+
+        <!-- ==================== FOOD ==================== -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🍽️ Food &amp; Dining" android:textColor="@color/text_primary"
+                android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvFoodTotal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="₹0" android:textColor="@color/accent_teal"
+                android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etFood" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal"
+                    android:textColor="@color/text_primary" android:hint="Add expense" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddFood"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:text="+" android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/accent_blue"
+                app:cornerRadius="12dp"
+                android:insetTop="0dp" android:insetBottom="0dp"
+                android:layout_marginEnd="8dp" />
+            <HorizontalScrollView
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:scrollbars="none"
+                android:fadingEdge="horizontal" android:fadingEdgeLength="16dp">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupFood"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    app:singleLine="true" app:chipSpacingHorizontal="6dp" />
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- ==================== TRANSPORT ==================== -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🚗 Transport" android:textColor="@color/text_primary"
+                android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvTransportTotal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="₹0" android:textColor="@color/accent_teal"
+                android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="20dp">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etTransport" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal"
+                    android:textColor="@color/text_primary" android:hint="Add expense" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddTransport"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:text="+" android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/accent_blue"
+                app:cornerRadius="12dp"
+                android:insetTop="0dp" android:insetBottom="0dp"
+                android:layout_marginEnd="8dp" />
+            <HorizontalScrollView
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:scrollbars="none"
+                android:fadingEdge="horizontal" android:fadingEdgeLength="16dp">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupTransport"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    app:singleLine="true" app:chipSpacingHorizontal="6dp" />
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- ==================== ACTIVITIES ==================== -->
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+            <TextView android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🎯 Activities &amp; Sightseeing" android:textColor="@color/text_primary"
+                android:textSize="14sp" android:textStyle="bold" />
+            <TextView android:id="@+id/tvActivitiesTotal"
+                android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:text="₹0" android:textColor="@color/accent_teal"
+                android:textSize="14sp" android:textStyle="bold" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:orientation="horizontal" android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
+            <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:boxCornerRadiusTopStart="12dp" app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp" app:boxCornerRadiusBottomEnd="12dp">
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etActivities" android:layout_width="match_parent"
+                    android:layout_height="wrap_content" android:inputType="numberDecimal"
+                    android:textColor="@color/text_primary" android:hint="Add expense" />
+            </com.google.android.material.textfield.TextInputLayout>
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddActivities"
+                android:layout_width="48dp" android:layout_height="48dp"
+                android:text="+" android:textSize="20sp"
+                android:textColor="@color/text_primary"
+                app:backgroundTint="@color/accent_blue"
+                app:cornerRadius="12dp"
+                android:insetTop="0dp" android:insetBottom="0dp"
+                android:layout_marginEnd="8dp" />
+            <HorizontalScrollView
+                android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:scrollbars="none"
+                android:fadingEdge="horizontal" android:fadingEdgeLength="16dp">
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupActivities"
+                    android:layout_width="wrap_content" android:layout_height="wrap_content"
+                    app:singleLine="true" app:chipSpacingHorizontal="6dp" />
+            </HorizontalScrollView>
+        </LinearLayout>
+
+        <!-- Reset button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnReset"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:text="🔄 Reset All Expenses"
+            android:textSize="14sp"
+            android:textColor="@color/text_secondary"
+            app:backgroundTint="@color/surface_dark"
+            app:strokeColor="@color/divider"
+            app:strokeWidth="1dp"
+            app:cornerRadius="14dp"
+            android:layout_marginBottom="16dp" />
 
     </LinearLayout>
 </ScrollView>

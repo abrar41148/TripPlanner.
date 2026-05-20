@@ -20,6 +20,7 @@ public class TripResultActivity extends AppCompatActivity {
     String destination;
     long startDate, endDate;
     ArrayList<String> activities;
+    int tripId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +31,7 @@ public class TripResultActivity extends AppCompatActivity {
         destination = getIntent().getStringExtra("destination");
         startDate = getIntent().getLongExtra("startDate", 0);
         endDate = getIntent().getLongExtra("endDate", 0);
+        tripId = getIntent().getIntExtra("tripId", -1);
         activities = getIntent().getStringArrayListExtra("activities");
 
         if (activities == null) activities = new ArrayList<>();
@@ -43,15 +45,7 @@ public class TripResultActivity extends AppCompatActivity {
         // Set up back button
         btnBack.setOnClickListener(v -> finish());
 
-        MaterialButton btnNewPlan = findViewById(R.id.btnNewPlan);
-        btnNewPlan.setOnClickListener(v -> {
-            android.content.SharedPreferences prefs = getSharedPreferences(LoginActivity.PREFS_NAME, MODE_PRIVATE);
-            prefs.edit().putBoolean("has_active_plan", false).apply();
-            android.content.Intent intent = new android.content.Intent(TripResultActivity.this, MainActivity.class);
-            intent.setFlags(android.content.Intent.FLAG_ACTIVITY_CLEAR_TOP | android.content.Intent.FLAG_ACTIVITY_NEW_TASK);
-            startActivity(intent);
-            finish();
-        });
+
 
         // Build subtitle string with date range and days
         SimpleDateFormat fmt = new SimpleDateFormat("d MMM", Locale.getDefault());
@@ -69,10 +63,10 @@ public class TripResultActivity extends AppCompatActivity {
         ViewPager2 viewPager = findViewById(R.id.viewPager);
         TabLayout tabLayout = findViewById(R.id.tabLayout);
 
-        TripPagerAdapter adapter = new TripPagerAdapter(this, destination, startDate, endDate, activities);
+        TripPagerAdapter adapter = new TripPagerAdapter(this, destination, startDate, endDate, activities, tripId);
         viewPager.setAdapter(adapter);
 
-        String[] tabTitles = {"🌤 Weather", "🏛 Attractions", "🗺 Visited", "🧳 Pack List"};
+        String[] tabTitles = {"🌤 Weather", "🏛 Attractions", "🗺 Visited", "🧳 Pack List", "📅 Itinerary"};
 
         new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
             tab.setText(tabTitles[position]);

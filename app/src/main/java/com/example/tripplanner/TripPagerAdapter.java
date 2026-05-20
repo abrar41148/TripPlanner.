@@ -14,14 +14,16 @@ public class TripPagerAdapter extends FragmentStateAdapter {
     String destination;
     long startDate, endDate;
     ArrayList<String> activities;
+    int tripId;
 
     public TripPagerAdapter(FragmentActivity activity, String destination,
-                            long startDate, long endDate, ArrayList<String> activities) {
+                            long startDate, long endDate, ArrayList<String> activities, int tripId) {
         super(activity);
         this.destination = destination;
         this.startDate = startDate;
         this.endDate = endDate;
         this.activities = activities;
+        this.tripId = tripId;
     }
 
     @NonNull
@@ -32,6 +34,7 @@ public class TripPagerAdapter extends FragmentStateAdapter {
         args.putLong("startDate", startDate);
         args.putLong("endDate", endDate);
         args.putStringArrayList("activities", activities);
+        args.putInt("tripId", tripId);
 
         Fragment fragment;
         if (position == 0) {
@@ -40,8 +43,12 @@ public class TripPagerAdapter extends FragmentStateAdapter {
             fragment = new AttractionsFragment();
         } else if (position == 2) {
             fragment = new VisitedFragment();
-        } else {
+        } else if (position == 3) {
             fragment = new PackListFragment();
+        } else {
+            fragment = ItineraryFragment.newInstance(tripId, destination, startDate, endDate, activities);
+            fragment.setArguments(args);
+            return fragment;
         }
 
         fragment.setArguments(args);
@@ -50,6 +57,6 @@ public class TripPagerAdapter extends FragmentStateAdapter {
 
     @Override
     public int getItemCount() {
-        return 4;
+        return 5;
     }
 }

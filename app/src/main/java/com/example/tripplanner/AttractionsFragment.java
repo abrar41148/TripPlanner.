@@ -10,9 +10,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -56,7 +58,7 @@ public class AttractionsFragment extends Fragment {
     List<String> selectedActivities = new ArrayList<>();
 
     TextView tvLoading;
-    ListView listAttractions;
+    RecyclerView listAttractions;
     ChipGroup chipGroupFilters;
     MaterialButton btnRetry;
     View btnReload;
@@ -68,15 +70,30 @@ public class AttractionsFragment extends Fragment {
 
     Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    private static final long CACHE_TTL_MS = 3 * 60 * 60 * 1000; // 3 hours
+
     List<Place> allFetchedPlaces = Collections.synchronizedList(new ArrayList<>());
     Set<String> seenNames = Collections.synchronizedSet(new HashSet<>());
     String currentFilter = "All";
 
-    static class ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView ivImage;
         TextView tvPlaceholder;
         TextView tvName, tvCategory, tvAddress, tvRating;
         MaterialButton btnSelect, btnVisit, btnStar;
+
+        ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            ivImage       = itemView.findViewById(R.id.ivAttractionImage);
+            tvPlaceholder = itemView.findViewById(R.id.tvAttractionImagePlaceholder);
+            tvName        = itemView.findViewById(R.id.tvAttractionName);
+            tvCategory    = itemView.findViewById(R.id.tvAttractionCategory);
+            tvAddress     = itemView.findViewById(R.id.tvAttractionAddress);
+            tvRating      = itemView.findViewById(R.id.tvAttractionRating);
+            btnSelect     = itemView.findViewById(R.id.btnSelect);
+            btnVisit      = itemView.findViewById(R.id.btnVisit);
+            btnStar       = itemView.findViewById(R.id.btnStar);
+        }
     }
 
     public static class Place {
@@ -190,6 +207,7 @@ public class AttractionsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_attractions, container, false);
         tvLoading        = view.findViewById(R.id.tvAttractionsLoading);
         listAttractions  = view.findViewById(R.id.listAttractions);
+        listAttractions.setLayoutManager(new LinearLayoutManager(getContext()));
         chipGroupFilters = view.findViewById(R.id.chipGroupFilters);
         btnRetry         = view.findViewById(R.id.btnRetryAttractions);
         btnReload        = view.findViewById(R.id.btnReloadAttractions);
@@ -204,6 +222,7 @@ public class AttractionsFragment extends Fragment {
             btnRetry.setVisibility(View.GONE);
             allFetchedPlaces.clear();
             seenNames.clear();
+            clearAttractionsCache();
             fetchGooglePlacesData();
         });
 
@@ -213,11 +232,16 @@ public class AttractionsFragment extends Fragment {
             listAttractions.setVisibility(View.GONE);
             allFetchedPlaces.clear();
             seenNames.clear();
+            clearAttractionsCache();
             fetchGooglePlacesData();
         });
 
         setupFilters();
-        fetchGooglePlacesData();
+
+        // Try cache first
+        if (!loadFromCache()) {
+            fetchGooglePlacesData();
+        }
         return view;
     }
 
@@ -229,13 +253,18 @@ public class AttractionsFragment extends Fragment {
 
     // ─── Filters ──────────────────────────────────────────────────────────────
     private void setupFilters() {
-        if (selectedActivities != null && !selectedActivities.isEmpty()) {
+        if (selectedActivities != null && selectedActivities.size() == 1) {
             String first = selectedActivities.get(0).toLowerCase();
             if      (first.contains("beach"))                                                       { currentFilter = "Beaches";   chipGroupFilters.check(R.id.chipBeaches); }
             else if (first.contains("restaurant")||first.contains("cafe")||first.contains("food"))  { currentFilter = "Food";      chipGroupFilters.check(R.id.chipFood); }
             else if (first.contains("club")||first.contains("pub"))                                 { currentFilter = "Nightlife"; chipGroupFilters.check(R.id.chipNightlife); }
             else if (first.contains("stay")||first.contains("rooms"))                               { currentFilter = "Stay";      chipGroupFilters.check(R.id.chipStay); }
             else if (first.contains("sightseeing"))                                                 { currentFilter = "Sights";    chipGroupFilters.check(R.id.chipSights); }
+            else if (first.contains("park")||first.contains("garden")||first.contains("nature"))     { currentFilter = "Parks";     chipGroupFilters.check(R.id.chipParks); }
+            else                                                                                    { currentFilter = "All";       chipGroupFilters.check(R.id.chipAll); }
+        } else {
+            currentFilter = "All";
+            chipGroupFilters.check(R.id.chipAll);
         }
 
         chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
@@ -245,6 +274,7 @@ public class AttractionsFragment extends Fragment {
             else if (checkedId == R.id.chipNightlife) currentFilter = "Nightlife";
             else if (checkedId == R.id.chipStay)      currentFilter = "Stay";
             else if (checkedId == R.id.chipBeaches)   currentFilter = "Beaches";
+            else if (checkedId == R.id.chipParks)     currentFilter = "Parks";
             applyFilter();
         });
     }
@@ -322,7 +352,8 @@ public class AttractionsFragment extends Fragment {
                 "Top tourist attractions and landmarks in " + destination,
                 "Best restaurants, cafes, and bakeries in " + destination,
                 "Top hotels and resorts in " + destination,
-                "Best bars, pubs, and night clubs in " + destination
+                "Best bars, pubs, and night clubs in " + destination,
+                "Top parks, beaches, and outdoor spots in " + destination
         };
 
         AtomicInteger pending = new AtomicInteger(queries.length);
@@ -349,7 +380,7 @@ public class AttractionsFragment extends Fragment {
             JSONObject body = new JSONObject();
             body.put("textQuery", query);
             body.put("languageCode", "en");
-            body.put("maxResultCount", 15);
+            body.put("maxResultCount", 20);
 
             // Bias results to destination city (10km radius) so we don't get random
             // results from user's IP location
@@ -419,7 +450,10 @@ public class AttractionsFragment extends Fragment {
                 String lowerAddr = p.address.toLowerCase();
 
                 // Map Google's robust types to our UI
-                if (type.contains("beach") || lowerName.contains("beach") || lowerAddr.contains("beach")) {
+                if (type.contains("park") || type.contains("garden") || type.contains("forest") || type.contains("nature_reserve") ||
+                        lowerName.contains("park") || lowerName.contains("garden") || lowerName.contains("forest") || lowerName.contains("nature reserve")) {
+                    p.category = "🌳 Parks"; p.subCategory = "Parks"; p.priority = 3; p.emoji = "🌳";
+                } else if (type.contains("beach") || lowerName.contains("beach") || lowerAddr.contains("beach")) {
                     p.category = "🏖️ Beach"; p.subCategory = "Beaches"; p.priority = 1; p.emoji = "🏖️";
                 } else if (type.contains("restaurant") || type.contains("cafe") || type.contains("food") || type.contains("bakery")) {
                     if (type.contains("bar") || type.contains("night_club") || lowerName.contains(" pub") || lowerName.contains(" bar") || lowerName.contains(" club")) {
@@ -483,11 +517,84 @@ public class AttractionsFragment extends Fragment {
                 if (allFetchedPlaces.isEmpty()) {
                     showDemoData(true);
                 } else {
+                    saveToCache();
                     sortAllFetchedPlaces();
                     applyFilter();
                 }
             });
         }
+    }
+
+    // ─── Cache ────────────────────────────────────────────────────────────────
+
+    private android.content.SharedPreferences getAttractionsCachePrefs() {
+        return getContext() != null
+                ? getContext().getSharedPreferences("attractions_cache", android.content.Context.MODE_PRIVATE)
+                : null;
+    }
+
+    private String getAttractionsCacheKey() {
+        return "attractions_" + destination + "_" + startDate;
+    }
+
+    private String getAttractionsCacheTimeKey() {
+        return getAttractionsCacheKey() + "_time";
+    }
+
+    private boolean loadFromCache() {
+        android.content.SharedPreferences prefs = getAttractionsCachePrefs();
+        if (prefs == null) return false;
+
+        long cachedTime = prefs.getLong(getAttractionsCacheTimeKey(), 0);
+        if (System.currentTimeMillis() - cachedTime > CACHE_TTL_MS) return false;
+
+        String cachedJson = prefs.getString(getAttractionsCacheKey(), null);
+        if (cachedJson == null || cachedJson.isEmpty()) return false;
+
+        try {
+            JSONArray arr = new JSONArray(cachedJson);
+            allFetchedPlaces.clear();
+            seenNames.clear();
+            for (int i = 0; i < arr.length(); i++) {
+                Place p = jsonToPlace(arr.getJSONObject(i));
+                allFetchedPlaces.add(p);
+                seenNames.add(p.name.toLowerCase());
+            }
+            if (!allFetchedPlaces.isEmpty()) {
+                sortAllFetchedPlaces();
+                applyFilter();
+                return true;
+            }
+        } catch (Exception e) {
+            // Cache corrupt, fetch fresh
+        }
+        return false;
+    }
+
+    private void saveToCache() {
+        android.content.SharedPreferences prefs = getAttractionsCachePrefs();
+        if (prefs == null) return;
+
+        JSONArray arr = new JSONArray();
+        synchronized (allFetchedPlaces) {
+            for (Place p : allFetchedPlaces) {
+                JSONObject obj = placeToJson(p);
+                if (obj != null) arr.put(obj);
+            }
+        }
+        prefs.edit()
+                .putString(getAttractionsCacheKey(), arr.toString())
+                .putLong(getAttractionsCacheTimeKey(), System.currentTimeMillis())
+                .apply();
+    }
+
+    private void clearAttractionsCache() {
+        android.content.SharedPreferences prefs = getAttractionsCachePrefs();
+        if (prefs == null) return;
+        prefs.edit()
+                .remove(getAttractionsCacheKey())
+                .remove(getAttractionsCacheTimeKey())
+                .apply();
     }
 
     // ─── Adapter ──────────────────────────────────────────────────────────────
@@ -497,32 +604,17 @@ public class AttractionsFragment extends Fragment {
         btnRetry.setVisibility(View.GONE);
         listAttractions.setVisibility(View.VISIBLE);
 
-        android.widget.BaseAdapter adapter = new android.widget.BaseAdapter() {
-            @Override public int getCount()          { return places.size(); }
-            @Override public Object getItem(int pos) { return places.get(pos); }
-            @Override public long getItemId(int pos) { return pos; }
+        RecyclerView.Adapter<ViewHolder> adapter = new RecyclerView.Adapter<ViewHolder>() {
+            @NonNull
+            @Override
+            public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+                View convertView = LayoutInflater.from(parent.getContext())
+                        .inflate(R.layout.item_attraction, parent, false);
+                return new ViewHolder(convertView);
+            }
 
             @Override
-            public View getView(int position, @Nullable View convertView, @NonNull ViewGroup parent) {
-                ViewHolder h;
-                if (convertView == null) {
-                    convertView = LayoutInflater.from(parent.getContext())
-                            .inflate(R.layout.item_attraction, parent, false);
-                    h = new ViewHolder();
-                    h.ivImage       = convertView.findViewById(R.id.ivAttractionImage);
-                    h.tvPlaceholder = convertView.findViewById(R.id.tvAttractionImagePlaceholder);
-                    h.tvName        = convertView.findViewById(R.id.tvAttractionName);
-                    h.tvCategory    = convertView.findViewById(R.id.tvAttractionCategory);
-                    h.tvAddress     = convertView.findViewById(R.id.tvAttractionAddress);
-                    h.tvRating      = convertView.findViewById(R.id.tvAttractionRating);
-                    h.btnSelect     = convertView.findViewById(R.id.btnSelect);
-                    h.btnVisit      = convertView.findViewById(R.id.btnVisit);
-                    h.btnStar       = convertView.findViewById(R.id.btnStar);
-                    convertView.setTag(h);
-                } else {
-                    h = (ViewHolder) convertView.getTag();
-                }
-
+            public void onBindViewHolder(@NonNull ViewHolder h, int position) {
                 Place place = places.get(position);
                 h.tvName.setText(place.name);
                 h.tvCategory.setText(place.category);
@@ -544,7 +636,7 @@ public class AttractionsFragment extends Fragment {
                     final ImageView imgView = h.ivImage;
                     final TextView phView = h.tvPlaceholder;
                     
-                    Glide.with(parent.getContext())
+                    Glide.with(h.itemView.getContext())
                             .load(place.imageUrl)
                             .diskCacheStrategy(DiskCacheStrategy.ALL)
                             .transition(DrawableTransitionOptions.withCrossFade(250))
@@ -631,7 +723,11 @@ public class AttractionsFragment extends Fragment {
                     applyFilter();
                     Toast.makeText(getContext(), "Marked as Visited!", Toast.LENGTH_SHORT).show();
                 });
-                return convertView;
+            }
+
+            @Override
+            public int getItemCount() {
+                return places.size();
             }
         };
 
