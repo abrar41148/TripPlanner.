@@ -1,4 +1,4 @@
-﻿package com.example.tripplanner;
+package com.example.tripplanner;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -81,8 +81,8 @@ public class ItineraryAdapter extends RecyclerView.Adapter<ItineraryAdapter.Itin
     }
 
     static class ItineraryViewHolder extends RecyclerView.ViewHolder {
-        TextView tvName, tvDescription, tvAttractionCount;
         TextView tvName, tvDescription, tvAttractionCount, tvItineraryPace;
+
         MaterialButton btnViewDetails, btnDelete;
 
         ItineraryViewHolder(@NonNull View itemView) {

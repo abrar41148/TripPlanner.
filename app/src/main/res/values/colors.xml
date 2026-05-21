@@ -15,4 +15,5 @@
     <color name="weather_card">#1E2235</color>
     <color name="rain_color">#6C8EFF</color>
     <color name="white">#FFFFFF</color>
+    <color name="error_red">#EF5350</color>
 </resources>

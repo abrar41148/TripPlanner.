@@ -1,4 +1,4 @@
-﻿package com.example.tripplanner;
+package com.example.tripplanner;
 
 
 import android.app.AlertDialog;
@@ -182,14 +182,6 @@ public class ItineraryFragment extends Fragment implements ItineraryAdapter.Itin
 
     @Override
     public void onItineraryReady(String itineraryJson, String name, String description) {
-        // Save to database
-        try {
-            long id = db.insertItinerary(tripId, name, description, itineraryJson);
-            loadItineraries();
-            Toast.makeText(getContext(), "Itinerary saved! ✅", Toast.LENGTH_SHORT).show();
-        } catch (Exception e) {
-            Toast.makeText(getContext(), "Error saving itinerary", Toast.LENGTH_SHORT).show();
-        }
         loadItineraries();
         Toast.makeText(getContext(), "Itinerary saved! ✅", Toast.LENGTH_SHORT).show();
     }

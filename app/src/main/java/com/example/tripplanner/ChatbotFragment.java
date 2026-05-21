@@ -1,4 +1,4 @@
-﻿package com.example.tripplanner;
+package com.example.tripplanner;
 
 import android.app.Dialog;
 import android.content.SharedPreferences;
@@ -142,7 +142,6 @@ public class ChatbotFragment extends DialogFragment {
         if (activities == null) activities = new ArrayList<>();
 
         // Setup RecyclerView
-        messageAdapter = new ChatMessageAdapter(messages);
         messageAdapter = new ChatMessageAdapter(messages, new ChatMessageAdapter.OnItineraryActionListener() {
             @Override
             public void onSave(int position) {
@@ -169,12 +168,8 @@ public class ChatbotFragment extends DialogFragment {
         // Send button
         btnSendMessage.setOnClickListener(v -> sendMessage());
 
-        // Initial bot greeting
-        String greeting = "Hello! 👋 I'm your AI Itinerary Planner for " + destination + ".\n\n" +
-                "Tell me:\n• How many days to plan?\n• Pace preference (relaxed/balanced/active)?";
-        addBotMessage(greeting);
         // Clear Chat button listener
-        View tvClearChat = view.findViewById(R.id.tvClearChat);
+        TextView tvClearChat = view.findViewById(R.id.tvClearChat);
         if (tvClearChat != null) {
             tvClearChat.setOnClickListener(v -> clearChatHistory());
         }
@@ -202,7 +197,6 @@ public class ChatbotFragment extends DialogFragment {
 
     private void saveItinerary() {
         String name = planningDays + "-Day " + destination;
-        String description = "AI-generated itinerary";
         String description = "AI-generated itinerary (" + chosenPace + ")";
 
         // Save directly to DB
@@ -262,8 +256,6 @@ public class ChatbotFragment extends DialogFragment {
         if (planningDays == -1) {
             int days = extractNumberFromText(userInput);
             if (days > 0) {
-                planningDays = days;
-                addBotMessage("Creating " + days + "-day itinerary.\n\nPace: 1️⃣ Relaxed | 2️⃣ Balanced | 3️⃣ Active");
                 long maxDays = 0;
                 if (startDate > 0 && endDate >= startDate) {
                     long diff = endDate - startDate;
@@ -282,13 +274,6 @@ public class ChatbotFragment extends DialogFragment {
                 btnSendMessage.setEnabled(true);
             }
         } else {
-            String pace = "balanced";
-            if (lowerInput.contains("active") || lowerInput.contains("fast") || lowerInput.contains("3")) {
-                pace = "active";
-            } else if (lowerInput.contains("relax") || lowerInput.contains("slow") || lowerInput.contains("1")) {
-                pace = "relaxed";
-            }
-
             String pace = null;
             if (lowerInput.contains("1") || lowerInput.contains("relax")) {
                 pace = "relaxed";
@@ -415,10 +400,6 @@ public class ChatbotFragment extends DialogFragment {
                                    .append("📍 ").append(item.optString("name", ""))
                                    .append(" (").append(item.optString("duration", "")).append(")<br><br>");
                         }
-                        display.append("Type <b>save</b> to save this itinerary!");
-
-                        mainHandler.post(() -> {
-                            addBotMessage(display.toString());
 
                         mainHandler.post(() -> {
                             addItineraryBotMessage(display.toString());

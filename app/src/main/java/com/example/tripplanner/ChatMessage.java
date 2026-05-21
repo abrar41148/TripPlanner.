@@ -1,4 +1,4 @@
-﻿package com.example.tripplanner;
+package com.example.tripplanner;
 
 public class ChatMessage {
     public static final int TYPE_USER = 0;

@@ -1,4 +1,4 @@
-﻿package com.example.tripplanner;
+package com.example.tripplanner;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -14,14 +14,8 @@ import java.util.List;
 
 public class ChatMessageAdapter extends RecyclerView.Adapter<ChatMessageAdapter.MessageViewHolder> {
 
-    private List<ChatMessage> messages;
-
-    private static final int TYPE_USER = 0;
-    private static final int TYPE_BOT = 1;
-
-    public ChatMessageAdapter(List<ChatMessage> messages) {
-        this.messages = messages;
     public interface OnItineraryActionListener {
+
         void onSave(int position);
         void onRedo(int position);
     }
