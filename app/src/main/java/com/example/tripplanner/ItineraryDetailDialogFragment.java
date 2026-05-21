@@ -1,4 +1,4 @@
-package com.example.tripplanner;
+﻿package com.example.tripplanner;
 
 import android.app.Dialog;
 import android.os.Bundle;
@@ -67,6 +67,7 @@ public class ItineraryDetailDialogFragment extends DialogFragment {
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
         return new Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
+        return new Dialog(requireContext(), R.style.FullScreenDialog);
     }
 
     @Override
@@ -102,6 +103,17 @@ public class ItineraryDetailDialogFragment extends DialogFragment {
 
         tvTitle.setText(itineraryName);
         tvSubtitle.setText(itineraryDesc);
+
+        String paceText = "Balanced Pace";
+        if (itineraryDesc != null) {
+            String descLower = itineraryDesc.toLowerCase();
+            if (descLower.contains("relaxed")) {
+                paceText = "Relaxed Pace";
+            } else if (descLower.contains("active")) {
+                paceText = "Active Pace";
+            }
+        }
+        tvSubtitle.setText(paceText);
 
         btnClose.setOnClickListener(v -> dismiss());
 

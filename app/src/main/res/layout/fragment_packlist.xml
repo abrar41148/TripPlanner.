@@ -1,5 +1,6 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
@@ -22,6 +23,45 @@
             android:text="0 / 0 packed"
             android:textColor="@color/text_secondary"
             android:textSize="13sp" />
+    <!-- Header matching other fragments -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="20dp"
+        android:paddingTop="20dp"
+        android:paddingBottom="4dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Pack List"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Smart packing for your trip"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginTop="2dp" />
+
+    </LinearLayout>
+
+    <!-- Progress section — matching itinerary detail style -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginBottom="8dp"
+        android:background="@drawable/progress_section_bg"
+        android:paddingHorizontal="14dp"
+        android:paddingVertical="10dp">
 
         <TextView
             android:id="@+id/tvPackEmoji"
@@ -51,6 +91,39 @@
         android:layout_weight="1"
         android:divider="@null"
         android:padding="16dp"
+            android:textSize="18sp"
+            android:layout_marginEnd="10dp" />
+
+        <TextView
+            android:id="@+id/tvPackProgress"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0 / 0 packed"
+            android:textSize="12sp"
+            android:textColor="@color/accent_teal" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/packProgressBar"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            app:trackThickness="6dp"
+            app:trackCornerRadius="3dp"
+            app:trackColor="@color/divider"
+            app:indicatorColor="@color/accent_teal"
+            android:max="100"
+            android:progress="0" />
+
+    </LinearLayout>
+
+    <!-- RecyclerView replacing ListView -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvPackItems"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp"
         android:clipToPadding="false" />
 
 </LinearLayout>

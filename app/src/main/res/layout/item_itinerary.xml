@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -82,6 +82,18 @@
                 android:paddingHorizontal="10dp"
                 android:paddingVertical="4dp" />
 
+            <TextView
+                android:id="@+id/tvItineraryPace"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚡ Balanced"
+                android:textSize="12sp"
+                android:textColor="@color/accent_blue"
+                android:background="@drawable/chip_bg"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="8dp" />
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
@@ -129,6 +141,7 @@
                 android:insetBottom="0dp"
                 android:layout_marginStart="8dp"
                 app:cornerRadius="8dp"
+                app:cornerRadius="14dp"
                 app:backgroundTint="@color/accent_blue" />
 
         </LinearLayout>

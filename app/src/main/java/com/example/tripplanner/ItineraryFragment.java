@@ -1,4 +1,4 @@
-package com.example.tripplanner;
+﻿package com.example.tripplanner;
 
 
 import android.app.AlertDialog;
@@ -190,6 +190,8 @@ public class ItineraryFragment extends Fragment implements ItineraryAdapter.Itin
         } catch (Exception e) {
             Toast.makeText(getContext(), "Error saving itinerary", Toast.LENGTH_SHORT).show();
         }
+        loadItineraries();
+        Toast.makeText(getContext(), "Itinerary saved! ✅", Toast.LENGTH_SHORT).show();
     }
 
     public static class ItineraryItem {

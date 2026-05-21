@@ -1,4 +1,4 @@
-package com.example.tripplanner;
+﻿package com.example.tripplanner;
 
 import android.app.Dialog;
 import android.content.SharedPreferences;
@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -75,6 +76,7 @@ public class ChatbotFragment extends DialogFragment {
     private ItineraryPlannerListener listener;
     private String geminiApiKey;
     private String lastGeneratedJson = null;
+    private String chosenPace = "balanced";
 
     private OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -141,6 +143,26 @@ public class ChatbotFragment extends DialogFragment {
 
         // Setup RecyclerView
         messageAdapter = new ChatMessageAdapter(messages);
+        messageAdapter = new ChatMessageAdapter(messages, new ChatMessageAdapter.OnItineraryActionListener() {
+            @Override
+            public void onSave(int position) {
+                if (position >= 0 && position < messages.size()) {
+                    messages.get(position).actionTaken = true;
+                    messageAdapter.notifyItemChanged(position);
+                }
+                saveItinerary();
+            }
+
+            @Override
+            public void onRedo(int position) {
+                if (position >= 0 && position < messages.size()) {
+                    messages.get(position).actionTaken = true;
+                    messageAdapter.notifyItemChanged(position);
+                }
+                redoPlanning();
+                saveChatHistory();
+            }
+        });
         rvChatMessages.setLayoutManager(new LinearLayoutManager(getContext()));
         rvChatMessages.setAdapter(messageAdapter);
 
@@ -151,6 +173,14 @@ public class ChatbotFragment extends DialogFragment {
         String greeting = "Hello! 👋 I'm your AI Itinerary Planner for " + destination + ".\n\n" +
                 "Tell me:\n• How many days to plan?\n• Pace preference (relaxed/balanced/active)?";
         addBotMessage(greeting);
+        // Clear Chat button listener
+        View tvClearChat = view.findViewById(R.id.tvClearChat);
+        if (tvClearChat != null) {
+            tvClearChat.setOnClickListener(v -> clearChatHistory());
+        }
+
+        // Load chat history or start fresh
+        loadChatHistory();
     }
 
     private void sendMessage() {
@@ -173,6 +203,7 @@ public class ChatbotFragment extends DialogFragment {
     private void saveItinerary() {
         String name = planningDays + "-Day " + destination;
         String description = "AI-generated itinerary";
+        String description = "AI-generated itinerary (" + chosenPace + ")";
 
         // Save directly to DB
         try {
@@ -188,6 +219,7 @@ public class ChatbotFragment extends DialogFragment {
             addBotMessage("✅ Itinerary saved! Close this chat and check the Itinerary tab.");
             btnSendMessage.setEnabled(false);
             etChatInput.setEnabled(false);
+            saveChatHistory();
         } catch (Exception e) {
             Log.e(TAG, "Error saving itinerary", e);
             addBotMessage("❌ Error saving: " + e.getMessage());
@@ -199,12 +231,29 @@ public class ChatbotFragment extends DialogFragment {
         messages.add(new ChatMessage(ChatMessage.TYPE_USER, message));
         messageAdapter.notifyItemInserted(messages.size() - 1);
         rvChatMessages.scrollToPosition(messages.size() - 1);
+        saveChatHistory();
     }
 
     private void addBotMessage(String message) {
         messages.add(new ChatMessage(ChatMessage.TYPE_BOT, message));
         messageAdapter.notifyItemInserted(messages.size() - 1);
         rvChatMessages.scrollToPosition(messages.size() - 1);
+        saveChatHistory();
+    }
+
+    private void addItineraryBotMessage(String message) {
+        messages.add(new ChatMessage(ChatMessage.TYPE_BOT_ITINERARY, message));
+        messageAdapter.notifyItemInserted(messages.size() - 1);
+        rvChatMessages.scrollToPosition(messages.size() - 1);
+        saveChatHistory();
+    }
+
+    private void redoPlanning() {
+        planningDays = -1;
+        lastGeneratedJson = null;
+        btnSendMessage.setEnabled(true);
+        etChatInput.setEnabled(true);
+        addBotMessage("Let's try again! 🗺️\n\nHow many days to plan? (e.g. '3 days')");
     }
 
     private void processBotResponse(String userInput) {
@@ -215,6 +264,18 @@ public class ChatbotFragment extends DialogFragment {
             if (days > 0) {
                 planningDays = days;
                 addBotMessage("Creating " + days + "-day itinerary.\n\nPace: 1️⃣ Relaxed | 2️⃣ Balanced | 3️⃣ Active");
+                long maxDays = 0;
+                if (startDate > 0 && endDate >= startDate) {
+                    long diff = endDate - startDate;
+                    maxDays = (diff / (1000 * 60 * 60 * 24)) + 1;
+                }
+                if (maxDays > 0 && days > maxDays) {
+                    addBotMessage("⚠️ The itinerary cannot be longer than your trip duration (" + maxDays + " days).\n\nHow many days would you like to plan? (e.g. '3 days')");
+                    btnSendMessage.setEnabled(true);
+                    return;
+                }
+                planningDays = days;
+                addBotMessage("Creating " + days + "-day itinerary.\n\nSelect a number to choose pace:\n1. Relaxed\n2. Balanced\n3. Active");
                 btnSendMessage.setEnabled(true);
             } else {
                 addBotMessage("How many days? (e.g., '3 days')");
@@ -227,6 +288,23 @@ public class ChatbotFragment extends DialogFragment {
             } else if (lowerInput.contains("relax") || lowerInput.contains("slow") || lowerInput.contains("1")) {
                 pace = "relaxed";
             }
+
+            String pace = null;
+            if (lowerInput.contains("1") || lowerInput.contains("relax")) {
+                pace = "relaxed";
+            } else if (lowerInput.contains("2") || lowerInput.contains("balance") || lowerInput.equals("balanced")) {
+                pace = "balanced";
+            } else if (lowerInput.contains("3") || lowerInput.contains("active") || lowerInput.contains("fast")) {
+                pace = "active";
+            }
+
+            if (pace == null) {
+                addBotMessage("⚠️ Invalid input.\n\nSelect a number to choose pace:\n1. Relaxed\n2. Balanced\n3. Active");
+                btnSendMessage.setEnabled(true);
+                return;
+            }
+
+            chosenPace = pace;
 
             addBotMessage("⏳ Generating your " + pace + " itinerary with AI...");
             generateItineraryWithGemini(pace);
@@ -341,6 +419,9 @@ public class ChatbotFragment extends DialogFragment {
 
                         mainHandler.post(() -> {
                             addBotMessage(display.toString());
+
+                        mainHandler.post(() -> {
+                            addItineraryBotMessage(display.toString());
                             btnSendMessage.setEnabled(true);
                         });
 
@@ -360,5 +441,101 @@ public class ChatbotFragment extends DialogFragment {
             addBotMessage("❌ Error: " + e.getMessage());
             btnSendMessage.setEnabled(true);
         }
+    }
+
+    private void saveChatHistory() {
+        if (tripId == -1) return;
+        try {
+            SharedPreferences prefs = getContext().getSharedPreferences(LoginActivity.PREFS_NAME, getContext().MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            
+            JSONArray array = new JSONArray();
+            for (ChatMessage msg : messages) {
+                JSONObject obj = new JSONObject();
+                obj.put("type", msg.type);
+                obj.put("message", msg.message);
+                obj.put("timestamp", msg.timestamp);
+                obj.put("actionTaken", msg.actionTaken);
+                array.put(obj);
+            }
+            
+            editor.putString("chat_history_" + tripId, array.toString());
+            editor.putInt("chat_planning_days_" + tripId, planningDays);
+            editor.putString("chat_last_json_" + tripId, lastGeneratedJson);
+            editor.putString("chat_chosen_pace_" + tripId, chosenPace);
+            editor.apply();
+        } catch (Exception e) {
+            Log.e(TAG, "Error saving chat history", e);
+        }
+    }
+
+    private void loadChatHistory() {
+        if (tripId == -1) return;
+        try {
+            SharedPreferences prefs = getContext().getSharedPreferences(LoginActivity.PREFS_NAME, getContext().MODE_PRIVATE);
+            String historyJson = prefs.getString("chat_history_" + tripId, null);
+            if (historyJson != null) {
+                JSONArray array = new JSONArray(historyJson);
+                messages.clear();
+                for (int i = 0; i < array.length(); i++) {
+                    JSONObject obj = array.getJSONObject(i);
+                    ChatMessage msg = new ChatMessage(obj.getInt("type"), obj.getString("message"));
+                    msg.timestamp = obj.optLong("timestamp", System.currentTimeMillis());
+                    msg.actionTaken = obj.optBoolean("actionTaken", false);
+                    messages.add(msg);
+                }
+                
+                planningDays = prefs.getInt("chat_planning_days_" + tripId, -1);
+                lastGeneratedJson = prefs.getString("chat_last_json_" + tripId, null);
+                chosenPace = prefs.getString("chat_chosen_pace_" + tripId, "balanced");
+                
+                if (!messages.isEmpty()) {
+                    ChatMessage lastMsg = messages.get(messages.size() - 1);
+                    if (lastMsg.type == ChatMessage.TYPE_BOT_ITINERARY && lastMsg.actionTaken) {
+                        btnSendMessage.setEnabled(false);
+                        etChatInput.setEnabled(false);
+                    } else {
+                        btnSendMessage.setEnabled(true);
+                        etChatInput.setEnabled(true);
+                    }
+                }
+                
+                messageAdapter.notifyDataSetChanged();
+                rvChatMessages.scrollToPosition(messages.size() - 1);
+            } else {
+                startFreshChat();
+            }
+        } catch (Exception e) {
+            Log.e(TAG, "Error loading chat history", e);
+            startFreshChat();
+        }
+    }
+
+    private void startFreshChat() {
+        messages.clear();
+        planningDays = -1;
+        lastGeneratedJson = null;
+        chosenPace = "balanced";
+        btnSendMessage.setEnabled(true);
+        etChatInput.setEnabled(true);
+        
+        String greeting = "Hello! 👋 I'm your AI Itinerary Planner for " + destination + ".\n\n" +
+                "Tell me:\n• How many days to plan?\n• Pace preference (relaxed/balanced/active)?";
+        messages.add(new ChatMessage(ChatMessage.TYPE_BOT, greeting));
+        messageAdapter.notifyDataSetChanged();
+        saveChatHistory();
+    }
+
+    private void clearChatHistory() {
+        if (tripId == -1) return;
+        SharedPreferences prefs = getContext().getSharedPreferences(LoginActivity.PREFS_NAME, getContext().MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        editor.remove("chat_history_" + tripId);
+        editor.remove("chat_planning_days_" + tripId);
+        editor.remove("chat_last_json_" + tripId);
+        editor.remove("chat_chosen_pace_" + tripId);
+        editor.apply();
+        
+        startFreshChat();
     }
 }

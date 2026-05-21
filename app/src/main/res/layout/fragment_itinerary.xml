@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -86,6 +86,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
+        android:paddingHorizontal="20dp"
+        android:paddingVertical="16dp"
         android:background="@color/surface_dark">
 
         <com.google.android.material.button.MaterialButton
@@ -101,6 +103,8 @@
             app:icon="@android:drawable/ic_input_add"
             app:iconGravity="textStart"
             app:iconTint="@android:color/white" />
+            app:cornerRadius="16dp"
+            app:backgroundTint="@color/accent_blue" />
 
     </LinearLayout>
 

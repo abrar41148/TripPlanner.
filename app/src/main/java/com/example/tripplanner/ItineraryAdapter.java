@@ -1,4 +1,4 @@
-package com.example.tripplanner;
+﻿package com.example.tripplanner;
 
 import android.view.LayoutInflater;
 import android.view.View;
@@ -42,6 +42,35 @@ public class ItineraryAdapter extends RecyclerView.Adapter<ItineraryAdapter.Itin
         holder.tvDescription.setText(item.description);
         holder.tvAttractionCount.setText("📍 " + item.attractions.size() + " activities");
 
+        
+        // Strip the pace suffix (e.g. " (relaxed)") from display description so it looks super clean!
+        String cleanDescription = item.description;
+        String paceText = "balanced";
+        if (item.description != null) {
+            String descLower = item.description.toLowerCase();
+            if (descLower.contains("relaxed")) {
+                paceText = "relaxed";
+            } else if (descLower.contains("active")) {
+                paceText = "active";
+            }
+            cleanDescription = item.description.replaceAll("\\s*\\((relaxed|balanced|active)\\)", "");
+        }
+        holder.tvDescription.setText(cleanDescription);
+        holder.tvAttractionCount.setText("📍 " + item.attractions.size() + " activities");
+
+        if (holder.tvItineraryPace != null) {
+            if (paceText.equals("relaxed")) {
+                holder.tvItineraryPace.setText("☕ Relaxed");
+                holder.tvItineraryPace.setTextColor(holder.itemView.getContext().getColor(R.color.accent_teal));
+            } else if (paceText.equals("active")) {
+                holder.tvItineraryPace.setText("⚡ Active");
+                holder.tvItineraryPace.setTextColor(holder.itemView.getContext().getColor(R.color.accent_blue));
+            } else {
+                holder.tvItineraryPace.setText("🏃 Balanced");
+                holder.tvItineraryPace.setTextColor(holder.itemView.getContext().getColor(R.color.accent_blue));
+            }
+        }
+
         holder.btnViewDetails.setOnClickListener(v -> listener.onViewDetails(item));
         holder.btnDelete.setOnClickListener(v -> listener.onDelete(item));
     }
@@ -53,6 +82,7 @@ public class ItineraryAdapter extends RecyclerView.Adapter<ItineraryAdapter.Itin
 
     static class ItineraryViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDescription, tvAttractionCount;
+        TextView tvName, tvDescription, tvAttractionCount, tvItineraryPace;
         MaterialButton btnViewDetails, btnDelete;
 
         ItineraryViewHolder(@NonNull View itemView) {
@@ -60,6 +90,7 @@ public class ItineraryAdapter extends RecyclerView.Adapter<ItineraryAdapter.Itin
             tvName = itemView.findViewById(R.id.tvItineraryName);
             tvDescription = itemView.findViewById(R.id.tvItineraryDescription);
             tvAttractionCount = itemView.findViewById(R.id.tvAttractionCount);
+            tvItineraryPace = itemView.findViewById(R.id.tvItineraryPace);
             btnViewDetails = itemView.findViewById(R.id.btnViewDetails);
             btnDelete = itemView.findViewById(R.id.btnDeleteItinerary);
         }
