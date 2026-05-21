@@ -7,6 +7,7 @@ import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -15,7 +16,6 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.progressindicator.LinearProgressIndicator;
 
 import org.json.JSONArray;
@@ -439,7 +439,9 @@ public class PackListFragment extends Fragment {
     void showPackList(ArrayList<PackItem> items) {
         if (!isAdded() || getContext() == null) return;
         updateProgress(items);
-        rvPackItems.setAdapter(new PackAdapter(items));
+
+        PackAdapter adapter = new PackAdapter(items);
+        rvPackItems.setAdapter(adapter);
     }
 
     void updateProgress(ArrayList<PackItem> items) {
@@ -447,17 +449,16 @@ public class PackListFragment extends Fragment {
         int done = 0;
         for (PackItem item : items) if (item.checked) done++;
         tvPackProgress.setText(done + " / " + total + " packed");
-        packProgressBar.setMax(100);
         packProgressBar.setProgress(total == 0 ? 0 : (done * 100) / total);
     }
 
-    // ── RecyclerView Adapter ─────────────────────────────────────
-    private class PackAdapter extends RecyclerView.Adapter<PackAdapter.PackViewHolder> {
+    // ── RecyclerView Adapter ──────────────────────────────────────
+    class PackAdapter extends RecyclerView.Adapter<PackAdapter.PackViewHolder> {
 
-        private final ArrayList<PackItem> itemsList;
+        private final ArrayList<PackItem> items;
 
         PackAdapter(ArrayList<PackItem> items) {
-            this.itemsList = items;
+            this.items = items;
         }
 
         @NonNull
@@ -470,53 +471,47 @@ public class PackListFragment extends Fragment {
 
         @Override
         public void onBindViewHolder(@NonNull PackViewHolder holder, int position) {
-            PackItem item = itemsList.get(position);
-
-            holder.tvName.setText(item.name);
-            holder.tvReason.setText(item.reason);
+            PackItem item = items.get(position);
 
             holder.checkBox.setOnCheckedChangeListener(null);
+            holder.tvName.setText(item.name);
+            holder.tvReason.setText(item.reason);
             holder.checkBox.setChecked(item.checked);
-            applyCheckedStyle(holder, item.checked);
 
-            // Card click toggles checkbox — matching itinerary detail behavior
-            holder.cardItem.setOnClickListener(v -> {
-                boolean newState = !holder.checkBox.isChecked();
-                holder.checkBox.setChecked(newState);
-                item.checked = newState;
-                applyCheckedStyle(holder, newState);
-                updateProgress(itemsList);
+            applyCheckedStyle(holder.tvName, item.checked);
+
+            holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
+                item.checked = isChecked;
+                applyCheckedStyle(holder.tvName, isChecked);
+                updateProgress(items);
             });
-        }
-
-        private void applyCheckedStyle(PackViewHolder holder, boolean checked) {
-            if (checked) {
-                holder.tvName.setPaintFlags(holder.tvName.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
-                holder.tvName.setAlpha(0.4f);
-                holder.tvReason.setAlpha(0.4f);
-            } else {
-                holder.tvName.setPaintFlags(holder.tvName.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
-                holder.tvName.setAlpha(1.0f);
-                holder.tvReason.setAlpha(1.0f);
-            }
         }
 
         @Override
         public int getItemCount() {
-            return itemsList.size();
+            return items.size();
+        }
+
+        private void applyCheckedStyle(TextView tv, boolean checked) {
+            if (checked) {
+                tv.setPaintFlags(tv.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
+                tv.setAlpha(0.5f);
+            } else {
+                tv.setPaintFlags(tv.getPaintFlags() & ~Paint.STRIKE_THRU_TEXT_FLAG);
+                tv.setAlpha(1.0f);
+            }
         }
 
         class PackViewHolder extends RecyclerView.ViewHolder {
-            MaterialCheckBox checkBox;
-            TextView tvName, tvReason;
-            com.google.android.material.card.MaterialCardView cardItem;
+            CheckBox checkBox;
+            TextView tvName;
+            TextView tvReason;
 
             PackViewHolder(@NonNull View itemView) {
                 super(itemView);
                 checkBox = itemView.findViewById(R.id.checkItem);
                 tvName = itemView.findViewById(R.id.tvItemName);
                 tvReason = itemView.findViewById(R.id.tvItemReason);
-                cardItem = itemView.findViewById(R.id.cardPackItem);
             }
         }
     }

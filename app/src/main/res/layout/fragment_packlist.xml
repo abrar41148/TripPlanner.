@@ -6,19 +6,19 @@
     android:orientation="vertical"
     android:background="@color/bg_dark">
 
-    <!-- Header matching other fragments -->
+    <!-- Header area -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:paddingHorizontal="20dp"
         android:paddingTop="20dp"
-        android:paddingBottom="4dp">
+        android:paddingBottom="12dp">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Pack List"
+            android:text="Packing List"
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary" />
@@ -26,33 +26,21 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Smart packing for your trip"
+            android:text="Smart suggestions based on your trip"
             android:textSize="13sp"
             android:textColor="@color/text_secondary"
             android:layout_marginTop="2dp" />
 
     </LinearLayout>
 
-    <!-- Progress section — matching itinerary detail style -->
+    <!-- Progress section -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:layout_marginHorizontal="20dp"
-        android:layout_marginTop="14dp"
-        android:layout_marginBottom="8dp"
-        android:background="@drawable/progress_section_bg"
-        android:paddingHorizontal="14dp"
-        android:paddingVertical="10dp">
-
-        <TextView
-            android:id="@+id/tvPackEmoji"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="🧳"
-            android:textSize="18sp"
-            android:layout_marginEnd="10dp" />
+        android:paddingHorizontal="20dp"
+        android:paddingBottom="8dp"
+        android:gravity="center_vertical">
 
         <TextView
             android:id="@+id/tvPackProgress"
@@ -60,30 +48,35 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="0 / 0 packed"
-            android:textSize="12sp"
-            android:textColor="@color/accent_teal" />
+            android:textColor="@color/text_secondary"
+            android:textSize="13sp" />
 
-        <com.google.android.material.progressindicator.LinearProgressIndicator
-            android:id="@+id/packProgressBar"
-            android:layout_width="100dp"
+        <TextView
+            android:id="@+id/tvPackEmoji"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            app:trackThickness="6dp"
-            app:trackCornerRadius="3dp"
-            app:trackColor="@color/divider"
-            app:indicatorColor="@color/accent_teal"
-            android:max="100"
-            android:progress="0" />
+            android:text="🧳"
+            android:textSize="20sp" />
 
     </LinearLayout>
 
-    <!-- RecyclerView replacing ListView -->
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/packProgressBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:layout_marginBottom="8dp"
+        app:trackThickness="6dp"
+        app:trackCornerRadius="3dp"
+        app:trackColor="@color/divider"
+        app:indicatorColor="@color/accent_teal" />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rvPackItems"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingHorizontal="12dp"
-        android:paddingVertical="4dp"
         android:clipToPadding="false" />
 
 </LinearLayout>

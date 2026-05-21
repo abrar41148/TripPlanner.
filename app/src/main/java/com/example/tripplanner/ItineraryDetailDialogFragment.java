@@ -66,7 +66,7 @@ public class ItineraryDetailDialogFragment extends DialogFragment {
     @NonNull
     @Override
     public Dialog onCreateDialog(@Nullable Bundle savedInstanceState) {
-        return new Dialog(requireContext(), R.style.FullScreenDialog);
+        return new Dialog(requireContext(), android.R.style.Theme_Black_NoTitleBar_Fullscreen);
     }
 
     @Override

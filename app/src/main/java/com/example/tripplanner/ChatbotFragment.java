@@ -169,7 +169,7 @@ public class ChatbotFragment extends DialogFragment {
         btnSendMessage.setOnClickListener(v -> sendMessage());
 
         // Clear Chat button listener
-        View tvClearChat = view.findViewById(R.id.tvClearChat);
+        TextView tvClearChat = view.findViewById(R.id.tvClearChat);
         if (tvClearChat != null) {
             tvClearChat.setOnClickListener(v -> clearChatHistory());
         }

@@ -39,6 +39,9 @@ public class ItineraryAdapter extends RecyclerView.Adapter<ItineraryAdapter.Itin
     public void onBindViewHolder(@NonNull ItineraryViewHolder holder, int position) {
         ItineraryFragment.ItineraryItem item = itineraries.get(position);
         holder.tvName.setText(item.name);
+        holder.tvDescription.setText(item.description);
+        holder.tvAttractionCount.setText("📍 " + item.attractions.size() + " activities");
+
         
         // Strip the pace suffix (e.g. " (relaxed)") from display description so it looks super clean!
         String cleanDescription = item.description;
@@ -79,6 +82,7 @@ public class ItineraryAdapter extends RecyclerView.Adapter<ItineraryAdapter.Itin
 
     static class ItineraryViewHolder extends RecyclerView.ViewHolder {
         TextView tvName, tvDescription, tvAttractionCount, tvItineraryPace;
+
         MaterialButton btnViewDetails, btnDelete;
 
         ItineraryViewHolder(@NonNull View itemView) {

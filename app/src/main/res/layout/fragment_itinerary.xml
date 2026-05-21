@@ -85,6 +85,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:padding="16dp"
         android:paddingHorizontal="20dp"
         android:paddingVertical="16dp"
         android:background="@color/surface_dark">
@@ -97,6 +98,11 @@
             android:textSize="15sp"
             android:textStyle="bold"
             android:textAllCaps="false"
+            app:cornerRadius="14dp"
+            app:backgroundTint="@color/accent_blue"
+            app:icon="@android:drawable/ic_input_add"
+            app:iconGravity="textStart"
+            app:iconTint="@android:color/white" />
             app:cornerRadius="16dp"
             app:backgroundTint="@color/accent_blue" />
 

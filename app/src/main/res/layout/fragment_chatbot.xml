@@ -21,6 +21,16 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="🤖 AI Planner"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Powered by Gemini"
+            android:textSize="11sp"
+            android:textColor="@color/text_secondary" />
             android:textSize="22sp"
             android:textStyle="bold"
             android:textColor="@color/text_primary" />

@@ -15,7 +15,7 @@
         app:cardCornerRadius="16dp"
         app:cardElevation="0dp"
         app:strokeWidth="0dp"
-        app:cardBackgroundColor="@color/card_dark">
+        app:cardBackgroundColor="@color/surface_dark">
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -82,7 +82,7 @@
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:layout_marginStart="8dp"
-                    app:cornerRadius="14dp"
+                    app:cornerRadius="8dp"
                     app:backgroundTint="@color/accent_blue" />
 
             </LinearLayout>
