@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.UserProfileChangeRequest;
 
 public class SignupActivity extends AppCompatActivity {
 
@@ -19,12 +22,14 @@ public class SignupActivity extends AppCompatActivity {
     TextView tvGoToLogin;
 
     SharedPreferences sharedPreferences;
+    FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup);
 
+        mAuth = FirebaseAuth.getInstance();
         sharedPreferences = getSharedPreferences(LoginActivity.PREFS_NAME, MODE_PRIVATE);
 
         etName = findViewById(R.id.etName);
@@ -72,26 +77,39 @@ public class SignupActivity extends AppCompatActivity {
             return;
         }
 
-        // Check if email already registered
-        if (sharedPreferences.getString("reg_email_" + email, null) != null) {
-            Toast.makeText(this, "Email already registered. Please login.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        btnSignup.setEnabled(false);
+        mAuth.createUserWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this, task -> {
+                if (task.isSuccessful()) {
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    if (user != null) {
+                        UserProfileChangeRequest profileUpdates = new UserProfileChangeRequest.Builder()
+                                .setDisplayName(name)
+                                .build();
 
-        // Save credentials in SharedPreferences
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("reg_email_" + email, email);
-        editor.putString("reg_password_" + email, password);
-        editor.putString("reg_username_" + email, name);
-        // Auto-login: save login session immediately after signup
-        editor.putBoolean(LoginActivity.KEY_IS_LOGGED_IN, true);
-        editor.putString(LoginActivity.KEY_EMAIL, email);
-        editor.putString(LoginActivity.KEY_USERNAME, name);
-        editor.apply();
+                        user.updateProfile(profileUpdates)
+                                .addOnCompleteListener(profileTask -> {
+                                    btnSignup.setEnabled(true);
+                                    // Save login session details in SharedPreferences for legacy code compatibility
+                                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                                    editor.putBoolean(LoginActivity.KEY_IS_LOGGED_IN, true);
+                                    editor.putString(LoginActivity.KEY_EMAIL, email);
+                                    editor.putString(LoginActivity.KEY_USERNAME, name);
+                                    editor.apply();
 
-        Toast.makeText(this, "Welcome, " + name + "!", Toast.LENGTH_SHORT).show();
-        // Go directly to Dashboard instead of back to login
-        goToDashboard();
+                                    Toast.makeText(this, "Welcome, " + name + "!", Toast.LENGTH_SHORT).show();
+                                    goToDashboard();
+                                });
+                    } else {
+                        btnSignup.setEnabled(true);
+                        goToDashboard();
+                    }
+                } else {
+                    btnSignup.setEnabled(true);
+                    String errorMsg = task.getException() != null ? task.getException().getMessage() : "Registration failed.";
+                    Toast.makeText(this, "Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                }
+            });
     }
 
     void goToDashboard() {

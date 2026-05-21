@@ -13,26 +13,35 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="6dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginBottom="8dp"
         android:paddingHorizontal="4dp"
         android:visibility="gone">
 
         <View
-            android:layout_width="3dp"
-            android:layout_height="20dp"
+            android:layout_width="4dp"
+            android:layout_height="22dp"
             android:background="@color/accent_teal" />
 
         <TextView
             android:id="@+id/tvDayHeader"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="DAY 1"
             android:textColor="@color/accent_teal"
             android:textSize="13sp"
             android:textStyle="bold"
-            android:letterSpacing="0.08"
-            android:layout_marginStart="10dp" />
+            android:letterSpacing="0.1"
+            android:layout_marginStart="12dp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="4dp"
+            android:background="@color/divider" />
 
     </LinearLayout>
 
@@ -45,8 +54,9 @@
         android:clickable="true"
         android:focusable="true"
         app:cardCornerRadius="16dp"
-        app:cardElevation="0dp"
-        app:strokeWidth="0dp"
+        app:cardElevation="2dp"
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/divider"
         app:cardBackgroundColor="@color/surface_dark"
         app:rippleColor="#224D8EFF">
 
@@ -55,13 +65,15 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:gravity="center_vertical"
-            android:padding="14dp">
+            android:paddingVertical="14dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="14dp">
 
             <!-- Checkbox -->
             <com.google.android.material.checkbox.MaterialCheckBox
                 android:id="@+id/cbCompleted"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
                 android:minWidth="0dp"
                 android:minHeight="0dp"
                 android:clickable="false"
@@ -83,7 +95,8 @@
                     android:text="Eiffel Tower Tour"
                     android:textColor="@color/text_primary"
                     android:textSize="15sp"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:lineSpacingExtra="2dp" />
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -114,23 +127,22 @@
                         android:textColor="@color/text_secondary"
                         android:textSize="12sp" />
 
-                    <View
-                        android:layout_width="4dp"
-                        android:layout_height="4dp"
-                        android:layout_marginHorizontal="8dp"
-                        android:background="@color/text_secondary" />
-
-                    <TextView
-                        android:id="@+id/tvCategory"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="🏛 Sightseeing"
-                        android:textColor="@color/accent_teal"
-                        android:textSize="12sp" />
-
                 </LinearLayout>
 
             </LinearLayout>
+
+            <!-- Category chip on the right -->
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🏛 Sightseeing"
+                android:textColor="@color/accent_teal"
+                android:textSize="11sp"
+                android:background="@drawable/chip_bg"
+                android:paddingHorizontal="10dp"
+                android:paddingVertical="4dp"
+                android:layout_marginStart="8dp" />
 
         </LinearLayout>
 

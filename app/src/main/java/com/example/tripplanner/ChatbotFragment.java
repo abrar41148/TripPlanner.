@@ -63,9 +63,12 @@ public class ChatbotFragment extends DialogFragment {
     private RecyclerView rvChatMessages;
     private EditText etChatInput;
     private MaterialButton btnSendMessage;
+    private View llInputBar;
     private ChatMessageAdapter messageAdapter;
     private List<ChatMessage> messages = new ArrayList<>();
     private Handler mainHandler = new Handler(Looper.getMainLooper());
+    private boolean isWaitingForRestartDecision = false;
+    private boolean isChatCompleted = false;
 
     private String destination;
     private long startDate;
@@ -119,6 +122,7 @@ public class ChatbotFragment extends DialogFragment {
         rvChatMessages = view.findViewById(R.id.rvChatMessages);
         etChatInput = view.findViewById(R.id.etChatInput);
         btnSendMessage = view.findViewById(R.id.btnSendMessage);
+        llInputBar = view.findViewById(R.id.llInputBar);
 
         // Get Gemini API key
         SharedPreferences prefs = getContext().getSharedPreferences(LoginActivity.PREFS_NAME, getContext().MODE_PRIVATE);
@@ -210,9 +214,11 @@ public class ChatbotFragment extends DialogFragment {
                 listener.onItineraryReady(lastGeneratedJson, name, description);
             }
 
-            addBotMessage("✅ Itinerary saved! Close this chat and check the Itinerary tab.");
-            btnSendMessage.setEnabled(false);
-            etChatInput.setEnabled(false);
+            addBotMessage("✅ Itinerary saved!");
+            addBotMessage("Would you like to plan a new itinerary? (yes/no)");
+            isWaitingForRestartDecision = true;
+            isChatCompleted = false;
+            showCompletedState(false);
             saveChatHistory();
         } catch (Exception e) {
             Log.e(TAG, "Error saving itinerary", e);
@@ -245,13 +251,31 @@ public class ChatbotFragment extends DialogFragment {
     private void redoPlanning() {
         planningDays = -1;
         lastGeneratedJson = null;
-        btnSendMessage.setEnabled(true);
-        etChatInput.setEnabled(true);
+        isWaitingForRestartDecision = false;
+        isChatCompleted = false;
+        showCompletedState(false);
         addBotMessage("Let's try again! 🗺️\n\nHow many days to plan? (e.g. '3 days')");
     }
 
     private void processBotResponse(String userInput) {
         String lowerInput = userInput.toLowerCase();
+
+        if (isWaitingForRestartDecision) {
+            if (lowerInput.contains("yes")) {
+                isWaitingForRestartDecision = false;
+                clearChatHistory();
+            } else if (lowerInput.contains("no")) {
+                isWaitingForRestartDecision = false;
+                isChatCompleted = true;
+                addBotMessage("Okay! Feel free to close this chat.");
+                showCompletedState(true);
+                saveChatHistory();
+            } else {
+                addBotMessage("Please type 'yes' to start planning a new itinerary, or 'no' to finish.");
+                btnSendMessage.setEnabled(true);
+            }
+            return;
+        }
 
         if (planningDays == -1) {
             int days = extractNumberFromText(userInput);
@@ -444,6 +468,8 @@ public class ChatbotFragment extends DialogFragment {
             editor.putInt("chat_planning_days_" + tripId, planningDays);
             editor.putString("chat_last_json_" + tripId, lastGeneratedJson);
             editor.putString("chat_chosen_pace_" + tripId, chosenPace);
+            editor.putBoolean("chat_waiting_for_restart_" + tripId, isWaitingForRestartDecision);
+            editor.putBoolean("chat_completed_" + tripId, isChatCompleted);
             editor.apply();
         } catch (Exception e) {
             Log.e(TAG, "Error saving chat history", e);
@@ -469,17 +495,10 @@ public class ChatbotFragment extends DialogFragment {
                 planningDays = prefs.getInt("chat_planning_days_" + tripId, -1);
                 lastGeneratedJson = prefs.getString("chat_last_json_" + tripId, null);
                 chosenPace = prefs.getString("chat_chosen_pace_" + tripId, "balanced");
+                isWaitingForRestartDecision = prefs.getBoolean("chat_waiting_for_restart_" + tripId, false);
+                isChatCompleted = prefs.getBoolean("chat_completed_" + tripId, false);
                 
-                if (!messages.isEmpty()) {
-                    ChatMessage lastMsg = messages.get(messages.size() - 1);
-                    if (lastMsg.type == ChatMessage.TYPE_BOT_ITINERARY && lastMsg.actionTaken) {
-                        btnSendMessage.setEnabled(false);
-                        etChatInput.setEnabled(false);
-                    } else {
-                        btnSendMessage.setEnabled(true);
-                        etChatInput.setEnabled(true);
-                    }
-                }
+                showCompletedState(isChatCompleted);
                 
                 messageAdapter.notifyDataSetChanged();
                 rvChatMessages.scrollToPosition(messages.size() - 1);
@@ -497,8 +516,9 @@ public class ChatbotFragment extends DialogFragment {
         planningDays = -1;
         lastGeneratedJson = null;
         chosenPace = "balanced";
-        btnSendMessage.setEnabled(true);
-        etChatInput.setEnabled(true);
+        isWaitingForRestartDecision = false;
+        isChatCompleted = false;
+        showCompletedState(false);
         
         String greeting = "Hello! 👋 I'm your AI Itinerary Planner for " + destination + ".\n\n" +
                 "Tell me:\n• How many days to plan?\n• Pace preference (relaxed/balanced/active)?";
@@ -515,8 +535,20 @@ public class ChatbotFragment extends DialogFragment {
         editor.remove("chat_planning_days_" + tripId);
         editor.remove("chat_last_json_" + tripId);
         editor.remove("chat_chosen_pace_" + tripId);
+        editor.remove("chat_waiting_for_restart_" + tripId);
+        editor.remove("chat_completed_" + tripId);
         editor.apply();
         
         startFreshChat();
+    }
+
+    private void showCompletedState(boolean completed) {
+        if (completed) {
+            if (llInputBar != null) llInputBar.setVisibility(View.GONE);
+        } else {
+            if (llInputBar != null) llInputBar.setVisibility(View.VISIBLE);
+            if (btnSendMessage != null) btnSendMessage.setEnabled(true);
+            if (etChatInput != null) etChatInput.setEnabled(true);
+        }
     }
 }

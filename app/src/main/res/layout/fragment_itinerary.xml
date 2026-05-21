@@ -103,8 +103,6 @@
             app:icon="@android:drawable/ic_input_add"
             app:iconGravity="textStart"
             app:iconTint="@android:color/white" />
-            app:cornerRadius="16dp"
-            app:backgroundTint="@color/accent_blue" />
 
     </LinearLayout>
 

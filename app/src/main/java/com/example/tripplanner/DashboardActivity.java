@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -39,7 +41,8 @@ public class DashboardActivity extends AppCompatActivity {
         btnBudget = findViewById(R.id.btnBudget);
         btnPackList = findViewById(R.id.btnPackList);
 
-        String username = sharedPreferences.getString(LoginActivity.KEY_USERNAME, "Traveler");
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+        String username = (user != null && user.getDisplayName() != null) ? user.getDisplayName() : "Traveler";
         tvWelcome.setText("Hello, " + username + "! ✈️");
 
         loadLastTrip();
@@ -161,6 +164,7 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     void logout() {
+        FirebaseAuth.getInstance().signOut();
         sharedPreferences.edit().putBoolean(LoginActivity.KEY_IS_LOGGED_IN, false).apply();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

@@ -13,6 +13,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -45,6 +46,10 @@ public class PackListFragment extends Fragment {
     OkHttpClient httpClient = new OkHttpClient();
     Handler mainHandler = new Handler(Looper.getMainLooper());
 
+    // Live list and adapter for incremental updates
+    ArrayList<PackItem> liveItems = new ArrayList<>();
+    PackAdapter packAdapter;
+
     // Destination intelligence flags
     boolean isBeachDest = false;
     boolean isMountainDest = false;
@@ -76,6 +81,8 @@ public class PackListFragment extends Fragment {
         tvPackProgress = view.findViewById(R.id.tvPackProgress);
 
         rvPackItems.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvPackItems.setItemViewCacheSize(20);
+        rvPackItems.setItemAnimator(new DefaultItemAnimator());
 
         if (getArguments() != null) {
             destination = getArguments().getString("destination");
@@ -86,17 +93,21 @@ public class PackListFragment extends Fragment {
 
         if (activities == null) activities = new ArrayList<>();
 
-        // Step 1: Detect destination type via geocoding + name analysis
-        analyzeDestination();
+        // Step 1: Keyword analysis (instant)
+        analyzeByKeywords();
+
+        // Step 2: Build and show the list immediately with what we know
+        buildPackList(false, false, false, false);
+
+        // Step 3: Fetch weather in background and append weather items when ready
+        analyzeDestinationAsync();
+
         return view;
     }
 
-    // ── Analyze destination: geocode to get country/region info + keyword check ──
-    void analyzeDestination() {
-        // First do keyword analysis on the destination name itself
-        analyzeByKeywords();
-
-        // Then geocode to get more info (country, region)
+    // ── Analyze destination async: geocode to get country/region info, then fetch weather ──
+    void analyzeDestinationAsync() {
+        // Geocode to get more info (country, region)
         try {
             String encoded = URLEncoder.encode(destination, "UTF-8");
             String url = "https://geocoding-api.open-meteo.com/v1/search?name=" + encoded + "&count=1&language=en&format=json";
@@ -105,17 +116,17 @@ public class PackListFragment extends Fragment {
             httpClient.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    mainHandler.post(() -> fetchWeatherForPacking(0, 0, false));
+                    // No weather data; list already shown — do nothing
                 }
 
                 @Override
                 public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                     String body = response.body() != null ? response.body().string() : "";
-                    mainHandler.post(() -> parseGeoAndAnalyze(body));
+                    mainHandler.post(() -> parseGeoAndFetchWeather(body));
                 }
             });
         } catch (Exception e) {
-            fetchWeatherForPacking(0, 0, false);
+            // No weather data; list already shown — do nothing
         }
     }
 
@@ -185,7 +196,7 @@ public class PackListFragment extends Fragment {
         }
     }
 
-    void parseGeoAndAnalyze(String json) {
+    void parseGeoAndFetchWeather(String json) {
         try {
             JSONObject root = new JSONObject(json);
             JSONArray results = root.optJSONArray("results");
@@ -213,20 +224,16 @@ public class PackListFragment extends Fragment {
                 }
 
                 fetchWeatherForPacking(lat, lon, true);
-            } else {
-                fetchWeatherForPacking(0, 0, false);
             }
+            // If no results, do nothing — list already shown
         } catch (Exception e) {
-            fetchWeatherForPacking(0, 0, false);
+            // Ignore — list already shown
         }
     }
 
     // ── Fetch weather to know rain/hot/cold for packing ──
     void fetchWeatherForPacking(double lat, double lon, boolean hasCoords) {
-        if (!hasCoords) {
-            buildPackList(false, false, false, false);
-            return;
-        }
+        if (!hasCoords) return;
 
         java.text.SimpleDateFormat fmt = new java.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         java.util.Calendar startCal = java.util.Calendar.getInstance();
@@ -250,22 +257,19 @@ public class PackListFragment extends Fragment {
         httpClient.newCall(request).enqueue(new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                mainHandler.post(() -> buildPackList(false, false, false, false));
+                // No weather data — list already visible
             }
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (!response.isSuccessful()) {
-                    mainHandler.post(() -> buildPackList(false, false, false, false));
-                    return;
-                }
+                if (!response.isSuccessful()) return;
                 String body = response.body().string();
-                mainHandler.post(() -> parseWeatherAndBuildList(body));
+                mainHandler.post(() -> parseWeatherAndAppend(body));
             }
         });
     }
 
-    void parseWeatherAndBuildList(String json) {
+    void parseWeatherAndAppend(String json) {
         boolean willRain = false, willBeHot = false, willBeCold = false, highWind = false;
         try {
             JSONObject root = new JSONObject(json);
@@ -291,7 +295,7 @@ public class PackListFragment extends Fragment {
         } catch (Exception e) {
             // ignore, use defaults
         }
-        buildPackList(willRain, willBeHot, willBeCold, highWind);
+        appendWeatherItems(willRain, willBeHot, willBeCold, highWind);
     }
 
     void buildPackList(boolean willRain, boolean willBeHot, boolean willBeCold, boolean highWind) {
@@ -368,29 +372,6 @@ public class PackListFragment extends Fragment {
             items.add(new PackItem("🧣 Dupatta / stole / shawl", "Head covering for religious places"));
         }
 
-        // ── Weather-based ─────────────────────────────────────────
-        if (willRain) {
-            items.add(new PackItem("☂️ Umbrella", "Rain expected during your trip!"));
-            items.add(new PackItem("🧥 Waterproof jacket", "Stay dry in the rain"));
-            items.add(new PackItem("👞 Waterproof / closed shoes", "Avoid wet feet"));
-        }
-
-        if (willBeHot && !isBeachDest && !isDesertDest) {
-            items.add(new PackItem("🧴 Sunscreen SPF 50+", "Hot weather ahead!"));
-            items.add(new PackItem("🕶️ Sunglasses", "UV protection"));
-            items.add(new PackItem("🧢 Hat / cap", "Shield from the sun"));
-            items.add(new PackItem("💧 Water bottle", "Stay hydrated in the heat"));
-        }
-
-        if (willBeCold && !isMountainDest && !isColdDest) {
-            items.add(new PackItem("🧥 Warm jacket / hoodie", "Temperatures may drop"));
-            items.add(new PackItem("🧣 Scarf", "For cold nights"));
-        }
-
-        if (highWind) {
-            items.add(new PackItem("🎩 Windproof hat / cap", "Strong winds expected"));
-        }
-
         // ── Activity-based ────────────────────────────────────────
         for (String activity : activities) {
             String act = activity.toLowerCase().replaceAll("[^a-z]", "");  // Strip emojis and special chars
@@ -436,12 +417,47 @@ public class PackListFragment extends Fragment {
         showPackList(items);
     }
 
+    void appendWeatherItems(boolean willRain, boolean willBeHot, boolean willBeCold, boolean highWind) {
+        if (!isAdded() || getContext() == null) return;
+
+        ArrayList<PackItem> weatherItems = new ArrayList<>();
+
+        if (willRain) {
+            weatherItems.add(new PackItem("☂️ Umbrella", "Rain expected during your trip!"));
+            weatherItems.add(new PackItem("🧥 Waterproof jacket", "Stay dry in the rain"));
+            weatherItems.add(new PackItem("👞 Waterproof / closed shoes", "Avoid wet feet"));
+        }
+        if (willBeHot && !isBeachDest && !isDesertDest) {
+            weatherItems.add(new PackItem("🧴 Sunscreen SPF 50+", "Hot weather ahead!"));
+            weatherItems.add(new PackItem("🕶️ Sunglasses", "UV protection"));
+            weatherItems.add(new PackItem("🧢 Hat / cap", "Shield from the sun"));
+            weatherItems.add(new PackItem("💧 Water bottle", "Stay hydrated in the heat"));
+        }
+        if (willBeCold && !isMountainDest && !isColdDest) {
+            weatherItems.add(new PackItem("🧥 Warm jacket / hoodie", "Temperatures may drop"));
+            weatherItems.add(new PackItem("🧣 Scarf", "For cold nights"));
+        }
+        if (highWind) {
+            weatherItems.add(new PackItem("🎩 Windproof hat / cap", "Strong winds expected"));
+        }
+
+        if (!weatherItems.isEmpty() && packAdapter != null) {
+            int insertPos = liveItems.size();
+            liveItems.addAll(weatherItems);
+            packAdapter.notifyItemRangeInserted(insertPos, weatherItems.size());
+            updateProgress(liveItems);
+        }
+    }
+
     void showPackList(ArrayList<PackItem> items) {
         if (!isAdded() || getContext() == null) return;
-        updateProgress(items);
 
-        PackAdapter adapter = new PackAdapter(items);
-        rvPackItems.setAdapter(adapter);
+        liveItems.clear();
+        liveItems.addAll(items);
+        updateProgress(liveItems);
+
+        packAdapter = new PackAdapter(liveItems);
+        rvPackItems.setAdapter(packAdapter);
     }
 
     void updateProgress(ArrayList<PackItem> items) {

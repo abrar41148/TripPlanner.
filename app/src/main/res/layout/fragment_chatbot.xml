@@ -31,9 +31,6 @@
             android:text="Powered by Gemini"
             android:textSize="11sp"
             android:textColor="@color/text_secondary" />
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@color/text_primary" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/tvClearChat"
@@ -72,6 +69,7 @@
 
     <!-- Input Bar -->
     <LinearLayout
+        android:id="@+id/llInputBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -106,5 +104,7 @@
             app:backgroundTint="@color/accent_blue" />
 
     </LinearLayout>
+
+
 
 </LinearLayout>

@@ -11,6 +11,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -24,15 +26,17 @@ public class LoginActivity extends AppCompatActivity {
     TextView tvGoToSignup;
 
     SharedPreferences sharedPreferences;
+    FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        mAuth = FirebaseAuth.getInstance();
         sharedPreferences = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
 
-        // Auto-login if already logged in
-        if (sharedPreferences.getBoolean(KEY_IS_LOGGED_IN, false)) {
+        // Auto-login if already logged in with Firebase
+        if (mAuth.getCurrentUser() != null) {
             goToDashboard();
             return;
         }
@@ -68,30 +72,31 @@ public class LoginActivity extends AppCompatActivity {
             return;
         }
 
-        // Check credentials against SharedPreferences (stored during signup)
-        String savedEmail = sharedPreferences.getString("reg_email_" + email, null);
-        String savedPassword = sharedPreferences.getString("reg_password_" + email, null);
-        String savedUsername = sharedPreferences.getString("reg_username_" + email, "Traveler");
+        btnLogin.setEnabled(false);
+        mAuth.signInWithEmailAndPassword(email, password)
+            .addOnCompleteListener(this, task -> {
+                btnLogin.setEnabled(true);
+                if (task.isSuccessful()) {
+                    FirebaseUser user = mAuth.getCurrentUser();
+                    String username = "Traveler";
+                    if (user != null && user.getDisplayName() != null && !user.getDisplayName().isEmpty()) {
+                        username = user.getDisplayName();
+                    }
 
-        if (savedEmail == null) {
-            Toast.makeText(this, "Account not found. Please sign up first.", Toast.LENGTH_SHORT).show();
-            return;
-        }
+                    // Save session details to sharedPreferences for compatibility
+                    SharedPreferences.Editor editor = sharedPreferences.edit();
+                    editor.putBoolean(KEY_IS_LOGGED_IN, true);
+                    editor.putString(KEY_EMAIL, email);
+                    editor.putString(KEY_USERNAME, username);
+                    editor.apply();
 
-        if (!password.equals(savedPassword)) {
-            Toast.makeText(this, "Incorrect password.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Save login session in SharedPreferences
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putBoolean(KEY_IS_LOGGED_IN, true);
-        editor.putString(KEY_EMAIL, email);
-        editor.putString(KEY_USERNAME, savedUsername);
-        editor.apply();
-
-        Toast.makeText(this, "Welcome back, " + savedUsername + "!", Toast.LENGTH_SHORT).show();
-        goToDashboard();
+                    Toast.makeText(this, "Welcome back, " + username + "!", Toast.LENGTH_SHORT).show();
+                    goToDashboard();
+                } else {
+                    String errorMsg = task.getException() != null ? task.getException().getMessage() : "Authentication failed.";
+                    Toast.makeText(this, "Error: " + errorMsg, Toast.LENGTH_LONG).show();
+                }
+            });
     }
 
     void goToDashboard() {
