@@ -496,6 +496,10 @@ public class PackListFragment extends Fragment {
 
             applyCheckedStyle(holder.tvName, item.checked);
 
+            holder.itemView.setOnClickListener(v -> {
+                holder.checkBox.setChecked(!item.checked);
+            });
+
             holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 item.checked = isChecked;
                 applyCheckedStyle(holder.tvName, isChecked);
